@@ -1,0 +1,102 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+
+# Load dataset
+data = load_breast_cancer()
+X = data.data
+y = data.target
+
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Feature scaling
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create models
+models = {
+    "Logistic Regression": LogisticRegression(max_iter=5000),
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42),
+    "AdaBoost": AdaBoostClassifier(n_estimators=100, random_state=42)
+}
+
+results = {}
+
+# Train and evaluate models
+for name, model in models.items():
+    if name == "Logistic Regression":
+        model.fit(X_train_scaled, y_train)
+        y_train_pred = model.predict(X_train_scaled)
+        y_test_pred = model.predict(X_test_scaled)
+    else:
+        model.fit(X_train, y_train)
+        y_train_pred = model.predict(X_train)
+        y_test_pred = model.predict(X_test)
+
+    results[name] = {
+        "Train Accuracy": accuracy_score(y_train, y_train_pred),
+        "Test Accuracy": accuracy_score(y_test, y_test_pred),
+        "Precision": precision_score(y_test, y_test_pred),
+        "Recall": recall_score(y_test, y_test_pred),
+        "F1 Score": f1_score(y_test, y_test_pred)
+    }
+
+    print("\n", name)
+    print("Training Accuracy:", accuracy_score(y_train, y_train_pred))
+    print("Testing Accuracy:", accuracy_score(y_test, y_test_pred))
+    print("Classification Report:\n", classification_report(y_test, y_test_pred))
+
+    cm = confusion_matrix(y_test, y_test_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(name + " Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.show()
+
+# Evaluation metrics comparison
+df_results = pd.DataFrame(results).T
+print("\nEvaluation Metrics Comparison:")
+print(df_results)
+
+# Training and testing accuracy graph
+df_results[["Train Accuracy", "Test Accuracy"]].plot(kind='bar', figsize=(9, 5))
+plt.title("Training vs Testing Accuracy")
+plt.ylabel("Accuracy")
+plt.xlabel("Models")
+plt.ylim(0, 1.1)
+plt.xticks(rotation=15)
+plt.legend()
+plt.grid(axis='y')
+plt.show()
+
+# Evaluation metrics comparison graph
+df_results[["Test Accuracy", "Precision", "Recall", "F1 Score"]].plot(kind='bar', figsize=(10, 5))
+plt.title("Evaluation Metrics Comparison")
+plt.ylabel("Score")
+plt.xlabel("Models")
+plt.ylim(0, 1.1)
+plt.xticks(rotation=15)
+plt.legend()
+plt.grid(axis='y')
+plt.show()
+
+# Prediction on new sample
+sample = X_test[0].reshape(1, -1)
+print("\nPrediction on New Sample:")
+for name, model in models.items():
+    if name == "Logistic Regression":
+        sample_scaled = scaler.transform(sample)
+        prediction = model.predict(sample_scaled)
+    else:
+        prediction = model.predict(sample)
+    print(name, ":", data.target_names[prediction[0]])
+print("Actual Output:", data.target_names[y_test[0]])

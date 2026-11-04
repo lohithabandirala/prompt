@@ -1,0 +1,69 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+knn = KNeighborsClassifier(n_neighbors=3, metric='manhattan')
+knn.fit(X_train, y_train)
+
+y_train_pred = knn.predict(X_train)
+y_test_pred = knn.predict(X_test)
+
+print("TRAINING RESULTS")
+print("Training Accuracy:", accuracy_score(y_train, y_train_pred))
+print("Training Confusion Matrix:\n", confusion_matrix(y_train, y_train_pred))
+
+print("\nTESTING RESULTS")
+print("Testing Accuracy:", accuracy_score(y_test, y_test_pred))
+print("Testing Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred))
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+ConfusionMatrixDisplay.from_predictions(y_train, y_train_pred, display_labels=iris.target_names, cmap="Blues", ax=ax[0])
+ax[0].set_title("Training Confusion Matrix")
+
+ConfusionMatrixDisplay.from_predictions(y_test, y_test_pred, display_labels=iris.target_names, cmap="Greens", ax=ax[1])
+ax[1].set_title("Testing Confusion Matrix")
+
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_train)), y_train, label="Actual Train", marker='o')
+plt.scatter(range(len(y_train)), y_train_pred, label="Predicted Train", marker='x')
+plt.xlabel("Training Sample Index")
+plt.ylabel("Class")
+plt.title("Training Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_test)), y_test, label="Actual Test", marker='o')
+plt.scatter(range(len(y_test)), y_test_pred, label="Predicted Test", marker='x')
+plt.xlabel("Testing Sample Index")
+plt.ylabel("Class")
+plt.title("Testing Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+new_sample = np.array([[5.5, 3.2, 1.5, 0.2]])
+new_sample_scaled = scaler.transform(new_sample)
+
+predicted_class = knn.predict(new_sample_scaled)[0]
+
+print("\nNEW SAMPLE PREDICTION")
+print("New Sample:", new_sample)
+print("Predicted Category:", iris.target_names[predicted_class])

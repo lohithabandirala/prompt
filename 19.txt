@@ -1,0 +1,161 @@
+
+# Write a program to classify datapoints in the Iris dataset using ID3 Decision Tree Algorithm.
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+
+iris = load_iris()
+X, y = iris.data, iris.target
+feature_names = iris.feature_names
+class_names = iris.target_names
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=5, random_state=42)
+clf.fit(X_train, y_train)
+
+y_train_pred = clf.predict(X_train)
+y_test_pred = clf.predict(X_test)
+
+print("TRAINING RESULTS")
+print("Accuracy:", accuracy_score(y_train, y_train_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_train, y_train_pred))
+
+print("\nTESTING RESULTS")
+print("Accuracy:", accuracy_score(y_test, y_test_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred))
+
+plt.figure(figsize=(12, 8))
+plot_tree(clf, feature_names=feature_names, class_names=class_names, filled=True, rounded=True)
+plt.title("ID3 Decision Tree")
+plt.show()
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+ConfusionMatrixDisplay.from_predictions(y_train, y_train_pred, display_labels=class_names, cmap="Blues", ax=ax[0])
+ax[0].set_title("Training Confusion Matrix")
+
+ConfusionMatrixDisplay.from_predictions(y_test, y_test_pred, display_labels=class_names, cmap="Greens", ax=ax[1])
+ax[1].set_title("Testing Confusion Matrix")
+
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_train)), y_train, label="Actual Train", marker='o')
+plt.scatter(range(len(y_train)), y_train_pred, label="Predicted Train", marker='x')
+plt.xlabel("Training Sample Index")
+plt.ylabel("Class")
+plt.title("Training Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_test)), y_test, label="Actual Test", marker='o')
+plt.scatter(range(len(y_test)), y_test_pred, label="Predicted Test", marker='x')
+plt.xlabel("Testing Sample Index")
+plt.ylabel("Class")
+plt.title("Testing Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+sample = np.array([[5.1, 3.5, 1.4, 0.2]])
+result = clf.predict(sample)
+
+print("\nNEW SAMPLE PREDICTION")
+print("Predicted Class:", class_names[result[0]])
+
+
+
+
+
+
+
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+
+# Load Iris dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+feature_names = iris.feature_names
+class_names = iris.target_names
+
+# Split dataset into 70% training and 30% testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Create Decision Tree model using Entropy (ID3 criterion)
+clf = DecisionTreeClassifier(criterion="entropy", max_depth=5, random_state=42)
+
+# Train the model
+clf.fit(X_train, y_train)
+
+# Predict output for training and testing data
+y_train_pred = clf.predict(X_train)
+y_test_pred = clf.predict(X_test)
+
+# Display training evaluation results
+print("TRAINING RESULTS")
+print("Accuracy:", accuracy_score(y_train, y_train_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_train, y_train_pred))
+
+# Display testing evaluation results
+print("\nTESTING RESULTS")
+print("Accuracy:", accuracy_score(y_test, y_test_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_test_pred))
+
+# Display Decision Tree graph
+plt.figure(figsize=(12, 8))
+plot_tree(clf, feature_names=feature_names, class_names=class_names, filled=True, rounded=True)
+plt.title("ID3 Decision Tree")
+plt.show()
+
+# Display training and testing confusion matrices
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+ConfusionMatrixDisplay.from_predictions(y_train, y_train_pred, display_labels=class_names, cmap="Blues", ax=ax[0])
+ax[0].set_title("Training Confusion Matrix")
+
+ConfusionMatrixDisplay.from_predictions(y_test, y_test_pred, display_labels=class_names, cmap="Greens", ax=ax[1])
+ax[1].set_title("Testing Confusion Matrix")
+
+plt.tight_layout()
+plt.show()
+
+# Plot actual and predicted training values
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_train)), y_train, label="Actual Train", marker='o')
+plt.scatter(range(len(y_train)), y_train_pred, label="Predicted Train", marker='x')
+plt.xlabel("Training Sample Index")
+plt.ylabel("Class")
+plt.title("Training Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+# Plot actual and predicted testing values
+plt.figure(figsize=(10, 5))
+plt.scatter(range(len(y_test)), y_test, label="Actual Test", marker='o')
+plt.scatter(range(len(y_test)), y_test_pred, label="Predicted Test", marker='x')
+plt.xlabel("Testing Sample Index")
+plt.ylabel("Class")
+plt.title("Testing Data: Actual vs Predicted")
+plt.legend()
+plt.show()
+
+# Test a new sample input
+sample = np.array([[5.1, 3.5, 1.4, 0.2]])
+
+# Predict the class of new flower
+result = clf.predict(sample)
+
+print("\nNEW SAMPLE PREDICTION")
+print("Predicted Class:", class_names[result[0]])

@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_diabetes
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
+
+X, y = load_diabetes(return_X_y=True)
+y = (y > np.median(y)).astype(int)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("F1-Score:", f1_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred, display_labels=['Class 0', 'Class 1'])
+plt.title("Confusion Matrix - Logistic Regression")
+plt.show()
+
+sample = X[0].reshape(1, -1)
+sample_scaled = scaler.transform(sample)
+result = model.predict(sample_scaled)
+
+print("\nSAMPLE TESTING")
+print("Predicted Class:", result[0])
+
+if result[0] == 1:
+    print("Sample belongs to Class 1 (Above Median)")
+else:
+    print("Sample belongs to Class 0 (Below or Equal to Median)")

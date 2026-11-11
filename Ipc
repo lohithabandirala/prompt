@@ -1,0 +1,201 @@
+Below are separate Sender (Client) and Receiver (Server) C programs for all three IPC methods. These are simple OS lab practical codes.
+
+### 1\. IPC using Pipes
+
+Pipes work between related processes, so the sender creates a child process using `fork()`.
+
+Sender.c
+
+```c
+#include<stdio.h>
+#include<unistd.h>
+#include<string.h>
+
+int main()
+{
+    int fd[2];
+    char msg[100]="Hello from Sender";
+
+    pipe(fd);
+
+    if(fork()==0)
+    {
+        close(fd[0]);
+        write(fd[1],msg,strlen(msg)+1);
+    }
+    else
+    {
+        close(fd[1]);
+        read(fd[0],msg,sizeof(msg));
+        printf("Receiver: %s",msg);
+    }
+    return 0;
+}
+```
+
+Receiver.c
+
+A normal unnamed pipe cannot be independently accessed by two separately started programs. For separate sender and receiver programs, use a named pipe (FIFO).
+
+### 2\. IPC using Message Passing
+
+Receiver.c (Server)
+
+```c
+#include<stdio.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+
+struct msg
+{
+    long type;
+    char text[100];
+};
+
+int main()
+{
+    int id;
+    struct msg m;
+
+    id=msgget(1234,0666|IPC_CREAT);
+
+    msgrcv(id,&m,sizeof(m.text),1,0);
+
+    printf("Received: %s\n",m.text);
+
+    msgctl(id,IPC_RMID,NULL);
+    return 0;
+}
+```
+
+Sender.c (Client)
+
+```c
+#include<stdio.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<string.h>
+
+struct msg
+{
+    long type;
+    char text[100];
+};
+
+int main()
+{
+    int id;
+    struct msg m;
+
+    id=msgget(1234,0666|IPC_CREAT);
+
+    m.type=1;
+    strcpy(m.text,"Hello from Sender");
+
+    msgsnd(id,&m,sizeof(m.text),0);
+
+    printf("Message sent\n");
+    return 0;
+}
+```
+
+Execution:
+
+```bash
+gcc receiver.c -o receiver
+gcc sender.c -o sender
+```
+
+First terminal:
+
+```bash
+./receiver
+```
+
+Second terminal:
+
+```bash
+./sender
+```
+
+### 3\. IPC using Shared Memory
+
+Receiver.c (Server)
+
+```c
+#include<stdio.h>
+#include<sys/ipc.h>
+#include<sys/shm.h>
+
+int main()
+{
+    int id;
+    char *p;
+
+    id=shmget(1234,1024,0666|IPC_CREAT);
+    p=(char*)shmat(id,NULL,0);
+
+    printf("Received: %s\n",p);
+
+    shmdt(p);
+    shmctl(id,IPC_RMID,NULL);
+
+    return 0;
+}
+```
+
+Sender.c (Client)
+
+```c
+#include<stdio.h>
+#include<sys/ipc.h>
+#include<sys/shm.h>
+#include<string.h>
+
+int main()
+{
+    int id;
+    char *p;
+
+    id=shmget(1234,1024,0666|IPC_CREAT);
+    p=(char*)shmat(id,NULL,0);
+
+    strcpy(p,"Hello from Sender");
+
+    printf("Message sent\n");
+
+    shmdt(p);
+    return 0;
+}
+```
+
+Execution:
+
+```bash
+gcc receiver.c -o receiver
+gcc sender.c -o sender
+```
+
+First terminal:
+
+```bash
+./receiver
+```
+
+Second terminal:
+
+```bash
+./sender
+```
+
+For shared memory, the receiver must wait until the sender writes the message; the simple code above needs synchronization for reliable execution.
+
+### Quick revision for practical exam
+
+| IPC method      | Sender          | Receiver       |
+| --------------- | --------------- | -------------- |
+| Pipes           | write()         | read()         |
+| Message Passing | msgsnd()        | msgrcv()       |
+| Shared Memory   | shmat() + write | shmat() + read |
+
+Important: For separate sender and receiver programs, use FIFO (`mkfifo`) for pipes. Unnamed pipes are normally used between related processes.
